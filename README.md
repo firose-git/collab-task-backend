@@ -32,7 +32,7 @@ A full-stack real-time task management application built with the MERN stack (Mo
 
 1. **Clone the repository**
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/firose-git/collab-task-backend.git
    cd collaborative-task-manager
    ```
 
