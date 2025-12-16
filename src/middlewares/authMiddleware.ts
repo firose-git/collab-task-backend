@@ -4,31 +4,32 @@ import asyncHandler from 'express-async-handler';
 import { User } from '../models/User';
 
 export interface AuthRequest extends Request {
-    user?: any;
+  user?: any;
 }
 
 export const protect = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
-    let token;
+  let token = req.cookies.token;
 
-    // Read from cookie first, or Authorization header as fallback
-    token = req.cookies.jwt;
+  if (!token && req.headers.authorization?.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
 
-    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        token = req.headers.authorization.split(' ')[1];
+  if (!token) {
+    res.status(401);
+    throw new Error('Not authorized, no token');
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret123') as JwtPayload;
+    req.user = await User.findById(decoded.userId).select('-password');
+    if (!req.user) {
+      res.status(401);
+      throw new Error('User not found');
     }
-
-    if (token) {
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret123') as JwtPayload;
-            req.user = await User.findById(decoded.userId).select('-passwordHash');
-            next();
-        } catch (error) {
-            console.error(error);
-            res.status(401);
-            throw new Error('Not authorized, token failed');
-        }
-    } else {
-        res.status(401);
-        throw new Error('Not authorized, no token');
-    }
+    next();
+  } catch (err) {
+    console.error('JWT Verify Error:', err);
+    res.status(401);
+    throw new Error('Not authorized, token failed');
+  }
 });
