@@ -15,10 +15,14 @@ const generateToken = (res: Response, userId: string) => {
   res.cookie('token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'none',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    domain: process.env.NODE_ENV === 'production'
+      ? 'collab-task-backend.onrender.com'
+      : 'localhost',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 };
+
 
 // @desc Register a new user
 // @route POST /api/auth/register
@@ -136,13 +140,18 @@ export const updateUserProfile = asyncHandler(async (req: AuthRequest, res: Resp
 // @access Public
 export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
   res.cookie('token', '', {
-    httpOnly: true,
-    sameSite: 'none',
-    secure: process.env.NODE_ENV === 'production',
-    expires: new Date(0),
-  });
-  res.status(200).json({ message: 'Logged out successfully' });
+  httpOnly: true,
+  sameSite: 'none',
+  secure: process.env.NODE_ENV === 'production',
+  domain: process.env.NODE_ENV === 'production'
+    ? 'collab-task-backend.onrender.com'
+    : 'localhost',
+  expires: new Date(0),
 });
+
+  res.json({ message: 'Logged out' });
+});
+
 
 // @desc Get all users
 // @route GET /api/auth/users

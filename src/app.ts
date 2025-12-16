@@ -13,7 +13,7 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// ✅ Updated CORS config: allow Vercel + local development
+// ✅ CORS Configuration — must allow cookies and set strict origin
 const allowedOrigins = [
   'https://collab-task-frontend.vercel.app',
   'http://localhost:5173',
@@ -30,25 +30,24 @@ app.use(
         callback(new Error('Not allowed by CORS'));
       }
     },
-    credentials: true,
+    credentials: true, // ✅ allow sending/receiving cookies
   })
 );
 
-
-// Middleware
+// ✅ Middleware: order matters!
 app.use(express.json());
 app.use(cookieParser());
 
-// Routes
+// ✅ Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 
-// Health check
+// ✅ Health check
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
-// Error handling
+// ✅ Error handlers
 app.use(notFound);
 app.use(errorHandler);
 
